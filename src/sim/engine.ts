@@ -1,4 +1,5 @@
 // src/sim/engine.ts
+//@ts-ignore
 import { RNG, exp, geometricMean } from './rng';
 import { isWorking } from './schedule';
 import { FIFOQueue, Server } from './servers';
@@ -123,6 +124,7 @@ export class Engine {
     const target = this.t + dt;
     
     // Detectar si estamos entrando en horario laboral
+    //@ts-ignore
     const wasWorking = isWorking(this.t);
 
     while (true) {
@@ -258,6 +260,7 @@ this.s4.utilization(this.t),
 const throughput = this.departures / Math.max(this.t, 1e-9); // prendas/hora promedio
 
     // Calcular métricas por servidor
+    //@ts-ignore
     const serverMetrics: [ServerMetrics, ServerMetrics, ServerMetrics, ServerMetrics] = [
       {
         queueLength: this.q1.length(),

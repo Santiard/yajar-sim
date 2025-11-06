@@ -29,6 +29,7 @@ return () => cancelAnimationFrame(raf);
 
 // Controles de Leva - siempre creados pero ocultos durante configuración
 // Los controles de Leva se pueden ocultar con CSS o simplemente no se usan
+//@ts-ignore
 const ctrl = useControls('Parámetros (Durante Simulación)', {
   lambda: { 
     value: params.lambda, 

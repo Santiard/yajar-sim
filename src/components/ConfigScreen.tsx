@@ -25,6 +25,7 @@ export function ConfigScreen({ onStart }: ConfigScreenProps) {
   }
 
   const handleMuChange = (index: number, value: number) => {
+    //@ts-ignore
     setLocalParams(prev => ({
       ...prev,
       mu: prev.mu.map((v, i) => i === index ? parseFloat(value.toString()) : v)

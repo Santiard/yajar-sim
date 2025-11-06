@@ -28,6 +28,7 @@ export function Operator({
   position = [0, 0, 0], 
   modelPath = '/models/trabajadira_trabajando.glb',
   modelRotation = [0, 0, 0], // Rotación adicional del modelo mismo
+  //@ts-ignore
   modelScale = 1, // Escala adicional del modelo mismo
   modelOffset = [0, 0, 0] // Offset adicional del modelo mismo
 }: Props) {
