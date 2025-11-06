@@ -10,6 +10,12 @@ export function ConfigScreen({ onStart }: ConfigScreenProps) {
   const { params, setParams } = useSim()
   const [localParams, setLocalParams] = useState(() => ({ ...params })) // Copiar para no mutar el original
 
+  // Calcular si el sistema es estable
+  const effectiveArrivalRate = localParams.lambda * localParams.B // prendas/hora
+  const systemCapacity = Math.min(...localParams.mu) // capacidad del sistema (cuello de botella)
+  const isStable = effectiveArrivalRate < systemCapacity
+  const utilization = effectiveArrivalRate / systemCapacity // utilización del cuello de botella
+
   const handleChange = (key: keyof typeof localParams, value: any) => {
     if (key === 'mu') {
       // Para mu, value será un array o un valor individual con índice
@@ -26,6 +32,11 @@ export function ConfigScreen({ onStart }: ConfigScreenProps) {
   }
 
   const handleStart = () => {
+    // Validar estabilidad antes de iniciar
+    if (!isStable) {
+      alert('⚠️ El sistema no es estable. La tasa de llegada efectiva no puede ser mayor o igual a la capacidad del sistema.')
+      return
+    }
     // Aplicar todos los parámetros antes de iniciar
     setParams(localParams)
     onStart()
@@ -87,6 +98,65 @@ export function ConfigScreen({ onStart }: ConfigScreenProps) {
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#888' }}>
             <span>0.001</span>
             <span>0.1</span>
+          </div>
+        </div>
+
+        {/* Indicador de estabilidad del sistema */}
+        <div style={{ 
+          marginBottom: '24px', 
+          padding: '16px', 
+          background: isStable ? '#e8f5e9' : '#ffebee', 
+          borderRadius: '8px', 
+          border: `2px solid ${isStable ? '#4caf50' : '#f44336'}` 
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ 
+              fontSize: '20px', 
+              marginRight: '8px' 
+            }}>
+              {isStable ? '✅' : '⚠️'}
+            </span>
+            <label style={{ 
+              fontWeight: 'bold', 
+              color: isStable ? '#2e7d32' : '#c62828', 
+              fontSize: '16px' 
+            }}>
+              {isStable ? 'Sistema Estable' : 'Sistema Inestable'}
+            </label>
+          </div>
+          <div style={{ fontSize: '14px', color: '#333', lineHeight: '1.6' }}>
+            <div style={{ marginBottom: '4px' }}>
+              <strong>Tasa de llegada efectiva:</strong> {effectiveArrivalRate.toFixed(4)} prendas/hora
+              <br />
+              <span style={{ fontSize: '12px', color: '#666' }}>
+                (λ × B = {localParams.lambda.toFixed(6)} × {localParams.B.toFixed(2)})
+              </span>
+            </div>
+            <div style={{ marginBottom: '4px' }}>
+              <strong>Capacidad del sistema:</strong> {systemCapacity.toFixed(4)} prendas/hora
+              <br />
+              <span style={{ fontSize: '12px', color: '#666' }}>
+                (Servidor más lento: μ = {systemCapacity.toFixed(4)})
+              </span>
+            </div>
+            <div style={{ marginBottom: '4px' }}>
+              <strong>Utilización del cuello de botella:</strong> {(utilization * 100).toFixed(2)}%
+            </div>
+            {!isStable && (
+              <div style={{ 
+                marginTop: '12px', 
+                padding: '10px', 
+                background: '#fff3cd', 
+                borderRadius: '6px', 
+                border: '1px solid #ffc107',
+                fontSize: '13px',
+                color: '#856404'
+              }}>
+                <strong>⚠️ Advertencia:</strong> La tasa de llegada efectiva ({effectiveArrivalRate.toFixed(4)} prendas/hora) 
+                es mayor o igual a la capacidad del sistema ({systemCapacity.toFixed(4)} prendas/hora). 
+                Esto causará que las colas crezcan indefinidamente. Por favor, ajuste los parámetros para que el sistema sea estable.
+              </div>
+            )}
           </div>
         </div>
 
@@ -199,29 +269,39 @@ export function ConfigScreen({ onStart }: ConfigScreenProps) {
 
         <button
           onClick={handleStart}
+          disabled={!isStable}
           style={{
             width: '100%',
             padding: '16px',
             fontSize: '18px',
             fontWeight: 'bold',
             color: 'white',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: isStable 
+              ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
+              : 'linear-gradient(135deg, #9e9e9e 0%, #757575 100%)',
             border: 'none',
             borderRadius: '8px',
-            cursor: 'pointer',
-            boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+            cursor: isStable ? 'pointer' : 'not-allowed',
+            boxShadow: isStable 
+              ? '0 4px 15px rgba(102, 126, 234, 0.4)' 
+              : '0 2px 5px rgba(0, 0, 0, 0.2)',
             transition: 'transform 0.2s, box-shadow 0.2s',
+            opacity: isStable ? 1 : 0.6,
           }}
           onMouseOver={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)'
-            e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)'
+            if (isStable) {
+              e.currentTarget.style.transform = 'translateY(-2px)'
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)'
+            }
           }}
           onMouseOut={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)'
-            e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)'
+            if (isStable) {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)'
+            }
           }}
         >
-          Iniciar Simulación
+          {isStable ? 'Iniciar Simulación' : 'Sistema Inestable - Ajuste los Parámetros'}
         </button>
       </div>
     </div>
